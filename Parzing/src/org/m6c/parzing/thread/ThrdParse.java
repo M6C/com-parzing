@@ -365,6 +365,9 @@ public abstract class ThrdParse extends AncestorThread {
 			} else {
 				if (url.getFile() != null && !url.getFile().equals("")) {
 					String filename = url.getFile();
+					while(filename.endsWith("/")) {
+						filename = filename.substring(0, filename.length()-1);
+					}
 					int idx = filename.lastIndexOf('/');
 					if (idx >= 0)
 						filename = filename.substring(idx + 1);
