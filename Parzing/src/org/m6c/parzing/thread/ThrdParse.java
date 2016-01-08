@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import org.m6c.parzing.bean.ItemTableDwnld;
 import org.m6c.parzing.bean.ItemTableLink;
 import org.m6c.parzing.bean.ThreadList;
 import org.m6c.parzing.bean.ThreadParameter;
@@ -435,24 +434,28 @@ public abstract class ThrdParse extends AncestorThread {
 		return list;
 	}
 
-	protected boolean isEquals(BeanTag tag1, BeanTag tag2) {
-		String escapeAttrVal = getEscapeAttrVal();
-		boolean equals = tag1.equalsAtLeast(tag2, getEscapeAttrVal());
+	protected boolean isEquals(BeanTag tagDat, BeanTag tagAct) {
+		boolean equals = tagDat.equalsAtLeast(tagAct, getEscapeAttrVal());
 		if (equals) {
-			String content1 = tag1.getContent();
-			String content2 = tag2.getContent();
-			content1 = (content1==null) ? content1 : content1.trim();
-			content2 = (content2==null) ? content2 : content2.trim();
-			equals =(content1==null && content2==null) ||
-					(
-						content1!=null && content2!=null &&
-						content1.equals(content2)
-					) ||
-					(escapeAttrVal!=null &&
-							(
-								escapeAttrVal.equals(content1) ||
-								escapeAttrVal.equals(content2)
-							));
+			equals = tagDat.getBeginEnd().equals(tagAct.getBeginEnd()) && tagDat.getEnd().equals(tagAct.getEnd());
+		}
+		if (equals) {
+			String contentDat = tagDat.getContent();
+			String contentAct = tagAct.getContent();
+			contentDat = (contentDat==null) ? contentDat : contentDat.trim();
+			contentAct = (contentAct==null) ? contentAct : contentAct.trim();
+//			equals =(contentDat==null && contentAct==null) ||
+//					(
+//						contentDat!=null && contentAct!=null &&
+//						contentDat.equals(contentAct)
+//					) ||
+//					(escapeAttrVal!=null &&
+//							(
+//								escapeAttrVal.equals(contentDat) ||
+//								escapeAttrVal.equals(contentAct)
+//							));
+			equals =((contentAct==null) || ("".equals(contentAct))) ||
+					(contentAct!=null && contentAct.equals(contentDat));
 				
 		}
 		return equals;

@@ -1,24 +1,17 @@
 package org.m6c.parzing.thread;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.m6c.parzing.bean.ItemTableDwnld;
-import org.m6c.parzing.bean.ItemTableLink;
 import org.m6c.parzing.bean.ThreadList;
 import org.m6c.parzing.bean.ThreadParameter;
-import org.m6c.parzing.tool.ToolLoadUrl;
 import org.m6c.ressource.FxHtml;
 
-import ressource.FxString;
 import ressource.XML.FxXML;
 import ressource.XML.XMLDocument;
 import ressource.bean.BeanTag;
@@ -118,7 +111,7 @@ public class ThrdParseSequence extends ThrdParse {
 
 								if (bFind) {
 
-									if (item.getTextType().equalsIgnoreCase(ItemTableDwnld.TYPE_IMAGE) && tagDat.getName().equalsIgnoreCase("IMG")) {
+									if (item.getTextType().equalsIgnoreCase(ItemTableDwnld.TYPE_IMAGE) /*&& tagDat.getName().equalsIgnoreCase("IMG")*/) {
 										szData += tagDat.getTag();
 									} else {
 										if (tagDat.getContent() != null)
@@ -135,7 +128,7 @@ public class ThrdParseSequence extends ThrdParse {
 												cntFind++;
 												i++;
 											} else {
-												if (item.getTextType().equalsIgnoreCase(ItemTableDwnld.TYPE_IMAGE) && tagDat.getName().equalsIgnoreCase("IMG")) {
+												if (item.getTextType().equalsIgnoreCase(ItemTableDwnld.TYPE_IMAGE) /*&& tagDat.getName().equalsIgnoreCase("IMG")*/) {
 													szData += tagDat.getTag();
 												} else {
 													if (tagDat.getTag() != null)
