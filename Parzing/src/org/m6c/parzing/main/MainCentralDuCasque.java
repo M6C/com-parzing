@@ -5,15 +5,14 @@ import java.util.List;
 import org.m6c.parzing.bean.ItemTableDwnld;
 import org.m6c.parzing.bean.ItemTableLink;
 
-public class MainJournalDuGeek extends AbstractMain {
+public class MainCentralDuCasque extends AbstractMain {
 
 	private static String url = "http://www.jdubuzz.com/";
-//	private static String url = "http://www.jdubuzz.com/2015/03/28/si-les-pokemon-existaient-vraiment";
 	private static String path = "C:\\Temp\\JournalDuGeek";
 	private static String pathImg =  path + "\\img";
 
 	public static void main(String[] args) {
-		new MainJournalDuGeek().launch(args);
+		new MainCentralDuCasque().launch(args);
 	}
 
 	protected void initializeUrlIncludeList(List<ItemTableLink> urlIncludeList) {

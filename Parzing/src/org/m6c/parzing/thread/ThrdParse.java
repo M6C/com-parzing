@@ -345,7 +345,7 @@ public abstract class ThrdParse extends AncestorThread {
 	 */
 	protected abstract void parseUrl(String url, String html);
 
-	protected String buildFileName(String szUrl, String path) {
+	protected String buildFileName(String szUrl) {
 		// return path.concat("\\").concat( (
 		// (this.getUrlContext().getQuery()==null ||
 		// this.getUrlContext().getQuery().equals("")) ?
@@ -356,8 +356,7 @@ public abstract class ThrdParse extends AncestorThread {
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
-		String ret = path + "\\";
-		ret += Calendar.getInstance().getTimeInMillis();
+		String ret = Long.toString(Calendar.getInstance().getTimeInMillis());
 		if (url!=null) {
 			if (url.getQuery() != null && !url.getQuery().equals("")) {
 				ret += "_" + this.getUrl().getQuery();
@@ -378,6 +377,10 @@ public abstract class ThrdParse extends AncestorThread {
 		}
 
 		return ret;
+	}
+
+	protected String buildFileName(String szUrl, String path) {
+		return path + "\\" + buildFileName(szUrl);
 	}
 	
 	protected String formatFileName(String filename, List list) {

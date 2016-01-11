@@ -50,6 +50,7 @@ public class ThrdParseSequence extends ThrdParse {
 		List<ItemTableDwnld> vListAction = this.getDownloadList();
 		String szPathXml = getOutputPathXml();
 		String szPathImage = getOutputPathImage();
+		String szFileNameFromUrl = buildFileName(url);
 
 //		if (getDestination().equals(DESTINATION_XML)) {
 
@@ -155,6 +156,11 @@ public class ThrdParseSequence extends ThrdParse {
 										Vector itemData = new Vector();
 										if (ItemTableDwnld.TYPE_IMAGE.equals(item.getTextType())) {
 											String szPath = formatFileName(szPathImage, vList);
+											szPath += "\\" + szFileNameFromUrl;
+											File fPath = new File(szPath);
+											if (!fPath.exists()) {
+												fPath.mkdirs();
+											}
 											List listImg = downloadImage(szData, szPath);
 											szData = "";
 											int size = listImg.size();
@@ -239,7 +245,7 @@ public class ThrdParseSequence extends ThrdParse {
 
 					if (cnt > 0) {
 						String szPath = formatFileName(szPathXml, mainList);
-						String szFileName = buildFileName(url, szPath);
+						String szFileName = szPath + "\\" + szFileNameFromUrl;
 						String szFileEnd = szFileName.substring(szFileName.indexOf("_")+1) + ".xml";
 
 						if (!isOverwriteIfFileExist() && isFileExistEndWith(szPath, szFileEnd)) {
