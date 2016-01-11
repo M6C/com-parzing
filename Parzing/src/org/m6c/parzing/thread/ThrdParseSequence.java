@@ -1,6 +1,7 @@
 package org.m6c.parzing.thread;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -57,21 +58,21 @@ public class ThrdParseSequence extends ThrdParse {
 			StringBuffer sbHTML = new StringBuffer(html);
 			String szHtml = sbHTML.toString();
 
-			List listTag = FxHtml.extractHashTag(szHtml);
+			List<?> listTag = FxHtml.extractHashTag(szHtml);
 
 			if (listTag != null && listTag.size() > 0 && vListAction != null && vListAction.size() > 0) {
 
 				int cnt = 0;
-				Hashtable attribut1 = new Hashtable();
+				Hashtable<String, String> attribut1 = new Hashtable<String, String>();
 				attribut1.put("url", url);
 				XMLDocument xmlDoc = new XMLDocument(attribut1);
 				xmlDoc.setEncode(getEncoding());
 
-				Vector vList = null;
-				Vector mainList = new Vector();
+				Vector<Vector<Serializable>> vList = null;
+				Vector<Vector<Serializable>> mainList = new Vector<Vector<Serializable>>();
 				try {
-					Iterator itAction = vListAction.iterator();
-					List listAction = new LinkedList();
+					Iterator<ItemTableDwnld> itAction = vListAction.iterator();
+					List<Object> listAction = new LinkedList<Object>();
 					while (itAction.hasNext()) {
 						ItemTableDwnld data = (ItemTableDwnld) itAction.next();
 						listAction.add(data); // Bean de donnée
@@ -83,150 +84,147 @@ public class ThrdParseSequence extends ThrdParse {
 					boolean bContinue = true;
 					int tagIdx = 0, sizeTag = listTag.size();
 					while (bContinue) {
-						vList = new Vector();
+						vList = new Vector<Vector<Serializable>>();
 						for (int iAct = 0; iAct < listAction.size();) {
 							ItemTableDwnld item = (ItemTableDwnld) listAction.get(iAct++);
 							boolean mandatory = item.isMandatory();
-							List lstActTag = (List) listAction.get(iAct++);
-							List lstActTagEnd = (List) listAction.get(iAct++);
+							@SuppressWarnings("unchecked")
+							List<BeanTag> lstActTag = (List<BeanTag>) listAction.get(iAct++);
+							List<?> lstActTagEnd = (List<?>) listAction.get(iAct++);
 							tagIdx = ((Integer) listAction.get(iAct++)).intValue();
 
-							boolean bLoop = true;
-//							while (bLoop) {
-								String szData = "";
-								BeanTag tagDat = null, tagAct = null;
-								boolean bFind = false;
-								Iterator itActTag = lstActTag.iterator();
-								while (tagIdx < sizeTag) {
-									if (tagAct == null || bFind)
-										tagAct = (BeanTag) itActTag.next();
-									tagDat = (BeanTag) listTag.get(tagIdx++);
-									if (isEquals(tagDat, tagAct)) {
-										bFind = true;
-										if (!itActTag.hasNext())
+							String szData = "";
+							BeanTag tagDat = null, tagAct = null;
+							boolean bFind = false;
+							Iterator<BeanTag> itActTag = lstActTag.iterator();
+							while (tagIdx < sizeTag) {
+								if (tagAct == null || bFind)
+									tagAct = (BeanTag) itActTag.next();
+								tagDat = (BeanTag) listTag.get(tagIdx++);
+								if (isEquals(tagDat, tagAct)) {
+									bFind = true;
+									if (!itActTag.hasNext())
+										break;
+								} else {
+									bFind = false;
+								}
+							}
+
+							if (bFind) {
+
+								if (item.getTextType().equalsIgnoreCase(ItemTableDwnld.TYPE_IMAGE) /*&& tagDat.getName().equalsIgnoreCase("IMG")*/) {
+									szData += tagDat.getTag();
+								} else {
+									if (tagDat.getContent() != null)
+										szData += tagDat.getContent();
+								}
+
+								int cntFind = 0;
+								for (int i = tagIdx; i < sizeTag; i++) {
+									@SuppressWarnings("unchecked")
+									Iterator<BeanTag> itActTagEnd = (Iterator<BeanTag>) lstActTagEnd.iterator();
+									while (itActTagEnd.hasNext() && tagIdx < sizeTag) {
+										tagAct = (BeanTag) itActTagEnd.next();
+										tagDat = (BeanTag) listTag.get(i);
+										if (isEquals(tagDat, tagAct)) {
+											cntFind++;
+											i++;
+										} else {
+											if (item.getTextType().equalsIgnoreCase(ItemTableDwnld.TYPE_IMAGE) /*&& tagDat.getName().equalsIgnoreCase("IMG")*/) {
+												szData += tagDat.getTag();
+											} else {
+												if (tagDat.getTag() != null)
+													szData += tagDat.getTag();
+												if (tagDat.getContent() != null)
+													szData += tagDat.getContent();
+												if (tagDat.getEndTag() != null)
+													szData += tagDat.getEndTag();
+											}
+											cntFind = 0;
 											break;
+										}
+									}
+									if (cntFind == lstActTagEnd.size()) {
+										// szData += szTmp;
+										bFind = true;
+										break;
 									} else {
 										bFind = false;
 									}
 								}
 
 								if (bFind) {
+									Vector<String> itemData = new Vector<String>();
+									if (ItemTableDwnld.TYPE_IMAGE.equals(item.getTextType())) {
+										String szPath = formatFileName(szPathImage, vList);
+										szPath += "\\" + szFileNameFromUrl;
+										File fPath = new File(szPath);
+										if (!fPath.exists()) {
+											fPath.mkdirs();
+										}
+										List<List<String>> listImg = downloadImage(szData, szPath);
+										szData = "";
+										int size = listImg.size();
+										for(int i=0 ; i<size ; i++) {
+											List<String> img = (List<String>)listImg.get(i);
+											String imgUrl = (String)img.get(0);
+											String imgFile = (String)img.get(1);
 
-									if (item.getTextType().equalsIgnoreCase(ItemTableDwnld.TYPE_IMAGE) /*&& tagDat.getName().equalsIgnoreCase("IMG")*/) {
-										szData += tagDat.getTag();
-									} else {
-										if (tagDat.getContent() != null)
-											szData += tagDat.getContent();
+											Hashtable<String, String> attribut = new Hashtable<String, String>();
+											attribut.put("id", Integer.toString(i));
+											attribut.put("url", imgUrl);
+
+											XMLDocument xml = new XMLDocument("Item", attribut, false);
+											xml.add(imgFile);
+											xml.createEnd();
+
+											szData += xml.toString();
+										}
+										itemData.add("\r\n"+szData);
+									}
+									else {
+										if (ItemTableDwnld.TYPE_TEXT.equals(item.getTextType())) {
+											szData = FxHtml.removeTag(szData);
+										}
+										itemData.add(FxHtml.cleanHtml(szData));
 									}
 
-									int cntFind = 0;
-									for (int i = tagIdx; i < sizeTag; i++) {
-										Iterator itActTagEnd = lstActTagEnd.iterator();
-										while (itActTagEnd.hasNext() && tagIdx < sizeTag) {
-											tagAct = (BeanTag) itActTagEnd.next();
-											tagDat = (BeanTag) listTag.get(i);
-											if (isEquals(tagDat, tagAct)) {
-												cntFind++;
-												i++;
-											} else {
-												if (item.getTextType().equalsIgnoreCase(ItemTableDwnld.TYPE_IMAGE) /*&& tagDat.getName().equalsIgnoreCase("IMG")*/) {
-													szData += tagDat.getTag();
-												} else {
-													if (tagDat.getTag() != null)
-														szData += tagDat.getTag();
-													if (tagDat.getContent() != null)
-														szData += tagDat.getContent();
-													if (tagDat.getEndTag() != null)
-														szData += tagDat.getEndTag();
-												}
-												cntFind = 0;
-												break;
-											}
-										}
-										if (cntFind == lstActTagEnd.size()) {
-											// szData += szTmp;
-											bFind = true;
-											break;
-										} else {
-											bFind = false;
-										}
-									}
-
-									if (bFind) {
-										Vector itemData = new Vector();
-										if (ItemTableDwnld.TYPE_IMAGE.equals(item.getTextType())) {
-											String szPath = formatFileName(szPathImage, vList);
-											szPath += "\\" + szFileNameFromUrl;
-											File fPath = new File(szPath);
-											if (!fPath.exists()) {
-												fPath.mkdirs();
-											}
-											List listImg = downloadImage(szData, szPath);
-											szData = "";
-											int size = listImg.size();
-											for(int i=0 ; i<size ; i++) {
-												List img = (List)listImg.get(i);
-												String imgUrl = (String)img.get(0);
-												String imgFile = (String)img.get(1);
-
-												Hashtable attribut = new Hashtable();
-												attribut.put("id", Integer.toString(i));
-												attribut.put("url", imgUrl);
-
-												XMLDocument xml = new XMLDocument("Item", attribut, false);
-												xml.add(imgFile);
-												xml.createEnd();
-
-												szData += xml.toString();
-											}
-											itemData.add("\r\n"+szData);
-										}
-										else {
-											if (ItemTableDwnld.TYPE_TEXT.equals(item.getTextType())) {
-												szData = FxHtml.removeTag(szData);
-											}
-											itemData.add(FxHtml.cleanHtml(szData));
-										}
-
-										Vector vListText = new Vector();
-										vListText.add(item.getTextName());
-										vListText.add(itemData);
-										vList.add(vListText);
-										bLoop = false;
-									} else {
-										tagIdx++;
-									}
+									Vector<Serializable> vListText = new Vector<Serializable>();
+									vListText.add(item.getTextName());
+									vListText.add(itemData);
+									vList.add(vListText);
 								} else {
-									if (mandatory) {
-										bContinue = false;
-										bLoop = false;
-										vList.clear();
-										cnt = 0;
-										iAct = listAction.size();
-									}
 									tagIdx++;
 								}
-								// Verifi si on est arrivé à la fin de la liste
-								// de tag du document
-								if (tagIdx >= sizeTag) {
-									if (listAction.size() > 0 && iAct > 0) {
-										// Supprime l'action
-										listAction.remove(--iAct);
-										listAction.remove(--iAct);
-										listAction.remove(--iAct);
-										listAction.remove(--iAct);
-									} else
-										bLoop = false;
-								} else {
-									// Met à jour l'ancien indice
-									listAction.set(iAct - 1, new Integer(tagIdx));
+							} else {
+								if (mandatory) {
+									bContinue = false;
+									vList.clear();
+									cnt = 0;
+									iAct = listAction.size();
 								}
-//							}
+								tagIdx++;
+							}
+							// Verifi si on est arrivé à la fin de la liste
+							// de tag du document
+							if (tagIdx >= sizeTag) {
+								if (listAction.size() > 0 && iAct > 0) {
+									// Supprime l'action
+									listAction.remove(--iAct);
+									listAction.remove(--iAct);
+									listAction.remove(--iAct);
+									listAction.remove(--iAct);
+								} else {
+								}
+							} else {
+								// Met à jour l'ancien indice
+								listAction.set(iAct - 1, new Integer(tagIdx));
+							}
 						}
 
 						if (vList.size() > 0) {
 							cnt++;
-							Hashtable attribut2 = new Hashtable();
+							Hashtable<String, String> attribut2 = new Hashtable<String, String>();
 							attribut2.put("id", Integer.toString(cnt));
 
 							FxXML.beginXMLElement(xmlDoc, "DATA", attribut2);
@@ -263,7 +261,7 @@ public class ThrdParseSequence extends ThrdParse {
 							xmlDoc.setEncode(getEncoding());
 						}
 
-						mainList = new Vector();
+						mainList = new Vector<Vector<Serializable>>();
 					}
 				}
 			}
@@ -273,7 +271,7 @@ public class ThrdParseSequence extends ThrdParse {
 	}
 
 	@Override
-	protected String formatFileName(String filename, List list) {
+	protected String formatFileName(String filename, List<Vector<Serializable>> list) {
 		String szPath = super.formatFileName(filename, list);
 		File fPath = new File(szPath);
 		if (!fPath.exists()) {

@@ -3,6 +3,7 @@ package org.m6c.parzing.thread;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -68,18 +69,18 @@ public abstract class ThrdParse extends AncestorThread {
 		int iNiveauActuel = 0;
 
 		// Liste des Url de la page à traiter
-		Vector vGlobalListUrl = new Vector();
+		Vector<Vector<String>> vGlobalListUrl = new Vector<Vector<String>>();
 		// Liste des Index pour chaque vGlobalListUrl
-		Vector vGlobalListLoop = new Vector();
+		Vector<Integer> vGlobalListLoop = new Vector<Integer>();
 		// Liste des liens de la premiere page à traiter
-		Vector vListUrl = new Vector();
+		Vector<String> vListUrl = new Vector<String>();
 		// Liste des mask (RegEx) de liens à traiter
-		Vector vListMaskUrlInc = null;
+		Vector<Pattern> vListMaskUrlInc = null;
 		// Liste des mask (RegEx) de liens à exclure
-		Vector vListMaskUrlExc = null;
+		Vector<Pattern> vListMaskUrlExc = null;
 		if (this.isUseIncludeList()) { // Parcoure les liens contenu dans la
 			// liste jTableLinkInclude
-			vListUrl = new Vector();
+			vListUrl = new Vector<String>();
 			for (int i = 0; i < this.getUrlIncludeList().size(); i++) {
 				ItemTableLink item = (ItemTableLink) this.getUrlIncludeList().get(i);
 				// Ajoute les liens ajouter dans la liste jTableLinkInclude
@@ -90,7 +91,7 @@ public abstract class ThrdParse extends AncestorThread {
 			if (this.isUseIncludeListAsMask()) { // Parcoure les liens
 				// contenu dans la liste
 				// jTableLinkInclude
-				vListMaskUrlInc = new Vector();
+				vListMaskUrlInc = new Vector<Pattern>();
 				for (int i = 0; i < this.getUrlIncludeList().size(); i++) {
 					ItemTableLink item = (ItemTableLink) this.getUrlIncludeList().get(i);
 
@@ -108,7 +109,7 @@ public abstract class ThrdParse extends AncestorThread {
 
 				// Parcoure les liens contenu dans la liste
 				// jTableLinkInclude
-				vListMaskUrlExc = new Vector();
+				vListMaskUrlExc = new Vector<Pattern>();
 				for (int i = 0; i < this.getUrlExcludeList().size(); i++) {
 					ItemTableLink item = (ItemTableLink) this.getUrlExcludeList().get(i);
 
@@ -139,7 +140,7 @@ public abstract class ThrdParse extends AncestorThread {
 			// Boucle sur toutes les listes des liens
 			while (vGlobalListUrl.size() > 0) {
 				// Liste du niveau Actuel
-				Vector item = (Vector) vGlobalListUrl.elementAt(iNiveauActuel);
+				Vector<?> item = (Vector<?>) vGlobalListUrl.elementAt(iNiveauActuel);
 				// Index Actuel de la liste des liens
 				int iLoop = ((Integer) vGlobalListLoop.elementAt(iNiveauActuel)).intValue();
 				if (iLoop < item.size()) { // Il y a encore des liens à traiter
@@ -167,7 +168,7 @@ public abstract class ThrdParse extends AncestorThread {
 									iLoop = 0;
 									// Recupère la liste des liens contenu dans la
 									// page à traiter
-									Vector vList = getListLink(szUrl2, html, vListMaskUrlInc, vListMaskUrlExc);
+									Vector<String> vList = getListLink(szUrl2, html, vListMaskUrlInc, vListMaskUrlExc);
 									// Fait un distinct sur la liste
 									vList = createListDistinct(vList);
 									// Affiche la liste des liens chez le parent
@@ -216,8 +217,8 @@ public abstract class ThrdParse extends AncestorThread {
 	 * @param listMaskUrlInc
 	 * @return liste d'objet URL
 	 */
-	protected Vector getListLink(String szURL, String szHTML, Vector listMaskUrlInc, Vector listMaskUrlExc) {
-		Vector ret = new Vector();
+	protected Vector<String> getListLink(String szURL, String szHTML, Vector<Pattern> listMaskUrlInc, Vector<Pattern> listMaskUrlExc) {
+		Vector<String> ret = new Vector<String>();
 		if (szHTML.length() > 0) {
 			String szHTMLUp = szHTML.toLowerCase();
 
@@ -284,7 +285,7 @@ public abstract class ThrdParse extends AncestorThread {
 								// ret.add(szUrl);
 								bAdd = true;
 							} else {
-								for (Iterator iter = listMaskUrlInc.iterator(); iter.hasNext();) {
+								for (Iterator<Pattern> iter = listMaskUrlInc.iterator(); iter.hasNext();) {
 									Pattern element = (Pattern) iter.next();
 									if (element.matcher(szUrl).find()) {
 										// ret.add(szUrl);
@@ -301,7 +302,7 @@ public abstract class ThrdParse extends AncestorThread {
 								 * la liste est null)
 								 */
 								if (listMaskUrlExc != null) {
-									for (Iterator iter = listMaskUrlExc.iterator(); iter.hasNext();) {
+									for (Iterator<Pattern> iter = listMaskUrlExc.iterator(); iter.hasNext();) {
 										Pattern element = (Pattern) iter.next();
 										if (element.matcher(szUrl).find()) {
 											bAdd = false;
@@ -383,11 +384,11 @@ public abstract class ThrdParse extends AncestorThread {
 		return path + "\\" + buildFileName(szUrl);
 	}
 	
-	protected String formatFileName(String filename, List list) {
+	protected String formatFileName(String filename, List<Vector<Serializable>> list) {
 		if (list!=null && list.size()>0) {
 			for (int i = 0; i < list.size(); i++) {
-				List vList = (List)list.get(i);
-				filename = FxString.replaceString(filename, "[" + vList.get(0) + "]", ((List)vList.get(1)).get(0).toString());
+				List<?> vList = (List<?>)list.get(i);
+				filename = FxString.replaceString(filename, "[" + vList.get(0) + "]", ((List<?>)vList.get(1)).get(0).toString());
 //				filename = filename.replaceAll("\\[" + ((List)vList.get(1)).get(0) + "]", (String)vList.get(0));
 			}
 		}
@@ -428,8 +429,8 @@ public abstract class ThrdParse extends AncestorThread {
 		return conn;
 	}
 
-	private Vector createListDistinct(Vector vList) {
-		Vector list = new Vector();
+	private Vector<String> createListDistinct(Vector<String> vList) {
+		Vector<String> list = new Vector<String>();
 		for(int i=0 ; i<vList.size() ; i++) {
 			if (!list.contains(vList.elementAt(i)))
 				list.add(vList.elementAt(i));
@@ -464,13 +465,15 @@ public abstract class ThrdParse extends AncestorThread {
 		return equals;
 	}
 
-	protected List downloadImage(String szHtml, String destinationPath) {
-		List ret = new Vector();
-		List listTag = FxHtml.extractHashTag(szHtml);
+	protected List<List<String>> downloadImage(String szHtml, String destinationPath) {
+		List<List<String>> ret = new Vector<List<String>>();
+		@SuppressWarnings("unchecked")
+		List<BeanTag> listTag = FxHtml.extractHashTag(szHtml);
 		for(int i=0 ; i<listTag.size() ; i++) {
 			BeanTag tag = (BeanTag) listTag.get(i);
 			if (tag.getName().equalsIgnoreCase("img")) {
-				List listAttr = tag.getListAttribut();
+				@SuppressWarnings("unchecked")
+				List<BeanTagAttribut> listAttr = (List<BeanTagAttribut>) tag.getListAttribut();
 				for(int j=0 ; j<listAttr.size() ; j++) {
 					BeanTagAttribut attr = (BeanTagAttribut)listAttr.get(j);
 					if ("src".equalsIgnoreCase(attr.getName())) {
@@ -483,7 +486,7 @@ public abstract class ThrdParse extends AncestorThread {
 							filename = e.getMessage();
 							e.printStackTrace();
 						} finally {
-							List img = new Vector();
+							List<String> img = new Vector<String>();
 							img.add(attr.getValue());
 							img.add(filename);
 							ret.add(img);
@@ -510,7 +513,7 @@ public abstract class ThrdParse extends AncestorThread {
 		return (myFiles!=null && myFiles.length>0);
 	}
 	
-	protected void showLink(Vector vListUrl) {
+	protected void showLink(Vector<String> vListUrl) {
 		for (int i = 0; i < vListUrl.size(); i++) {
 			log("showLink["+i+"]:" + vListUrl.get(i));
 		}
