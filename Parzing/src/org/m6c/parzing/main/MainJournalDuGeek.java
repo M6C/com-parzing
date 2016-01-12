@@ -9,7 +9,7 @@ public class MainJournalDuGeek extends AbstractMain {
 
 	private static String url = "http://www.jdubuzz.com/";
 //	private static String url = "http://www.jdubuzz.com/2015/03/28/si-les-pokemon-existaient-vraiment";
-	private static String path = "C:\\Temp\\JournalDuGeek";
+	private static String path = "/Temp/JournalDuGeek";
 	private static String pathImg =  path + "\\img";
 
 	public static void main(String[] args) {

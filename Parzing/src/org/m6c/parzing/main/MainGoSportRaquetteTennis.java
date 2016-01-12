@@ -8,7 +8,7 @@ import org.m6c.parzing.bean.ItemTableLink;
 public class MainGoSportRaquetteTennis extends AbstractMain {
 
 	private static String url = "http://www.go-sport.com/sport/sport-de-raquette/tennis/raquettes/l-730070206.html";
-	private static String path = "C:\\Temp\\GoSport\\[Genre]\\[Marque]";
+	private static String path = "/Temp/GoSport/[Genre]/[Marque]";
 	private static String pathImg =  path + "\\img";
 
 	public static void main(String[] args) {
